@@ -1,0 +1,38 @@
+#
+# bash command: gstore
+# Function that stores our current edits in a stash then moves
+# to the master branch.
+#
+function gstore() {
+  [ ! -d "$(git rev-parse --show-toplevel)/.git" ] && {
+    echo "This is not a working git repository"
+    return 1
+  }
+
+  # We need to check if there are changes already made and
+  # warn the user, and not progress.
+  [[ -z $(git status -s) ]] && {
+    echo "Git tree is clean, nothing to store, exiting."
+    return 2
+  }
+
+  current=$(git rev-parse --abbrev-ref HEAD)
+  branch_number=${current//[!0-9]/}
+
+  echo "${RED}Storing and switching to master branch${WHITE}..."
+
+  [ "$1" ] && {
+    read -r number
+
+    branch_number=number
+  }
+
+  # Add the files for stashing
+  git add -A
+
+  # Stash the files
+  git stash save ${branch_number}
+
+  # Move back to the master branch
+  git checkout master
+}
